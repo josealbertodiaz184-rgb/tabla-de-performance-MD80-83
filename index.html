@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>JD Flight Dispatcher - DC-9 Landing Performance & PLD</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: url('22789_2.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #e0e0e0; 
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .container { 
+            width: 100%;
+            max-width: 780px; 
+            background: rgba(18, 18, 18, 0.88); 
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(212, 175, 55, 0.3); 
+            margin: auto; 
+            border: 2px solid #d4af37; 
+        }
+        
+        .header { text-align: center; border-bottom: 2px solid #d4af37; padding-bottom: 15px; margin-bottom: 20px; }
+        .logo { width: 110px; height: auto; border-radius: 50%; border: 2px solid #d4af37; margin-bottom: 10px; box-shadow: 0 0 10px rgba(212, 175, 55, 0.4); }
+        h2 { text-align: center; color: #d4af37; margin: 5px 0; letter-spacing: 1px; font-size: 1.6em; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
+        p.brand-subtitle { text-align: center; color: #b3b3b3; font-size: 0.9em; font-weight: bold; letter-spacing: 2px; margin-top: 0; text-transform: uppercase; }
+        
+        .unit-selector-box {
+            background: rgba(35, 30, 15, 0.9);
+            border: 1px solid #d4af37;
+            border-radius: 6px;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .unit-selector-box label { margin: 0; font-size: 1em; color: #d4af37; }
+        .unit-selector-box select { width: auto; padding: 6px 15px; font-weight: bold; color: #d4af37; background-color: #111; border: 1px solid #d4af37; }
+
+        .section-title { color: #d4af37; border-bottom: 1px solid rgba(212, 175, 55, 0.4); padding-bottom: 5px; margin-top: 20px; margin-bottom: 15px; font-size: 1.1em; letter-spacing: 0.5px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #d4af37; font-size: 0.9em; }
+        select, input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #444; border-radius: 5px; background-color: rgba(25, 25, 25, 0.9); color: #fff; font-size: 14px; }
+        select:focus, input:focus { border-color: #d4af37; outline: none; box-shadow: 0 0 8px rgba(212, 175, 55, 0.5); }
+        
+        button { width: 100%; padding: 12px; background: linear-gradient(135deg, #d4af37 0%, #aa820a 100%); color: #000; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s; }
+        button:hover { background: linear-gradient(135deg, #e5be48 0%, #bb931b 100%); box-shadow: 0 0 12px rgba(212, 175, 55, 0.6); }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background-color: rgba(20, 20, 20, 0.85); border-radius: 6px; overflow: hidden; }
+        th, td { border: 1px solid #333; padding: 10px; text-align: center; }
+        th { background-color: rgba(45, 42, 30, 0.9); color: #d4af37; font-size: 0.9em; }
+        .highlight { font-weight: bold; color: #d4af37; }
+        .status-ok-text { color: #2ecc71; font-weight: bold; }
+        .status-warn-text { color: #e74c3c; font-weight: bold; }
+        
+        .status-box { margin-top: 20px; padding: 15px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 1.05em; border: 2px solid transparent; }
+        .status-ok { background-color: rgba(27, 56, 35, 0.9); color: #2ecc71; border-color: #2ecc71; }
+        .status-warning { background-color: rgba(61, 28, 29, 0.9); color: #e74c3c; border-color: #e74c3c; }
+        
+        .footer { text-align: center; margin-top: 25px; padding-top: 15px; border-top: 1px solid #333; font-size: 0.8em; color: #aaa; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <img src="22789_2.jpg" alt="JD Flight Dispatcher Logo" class="logo">
+        <h2>DC-9-80 PERFORMANCE & PLD ASSESSMENT</h2>
+        <p class="brand-subtitle">Flight Dispatcher | Planificación Segura</p>
+    </div>
+    
+    <div class="unit-selector-box">
+        <label for="weight_unit">Unidad de Medida de Pesos:</label>
+        <select id="weight_unit" onchange="convertirUnidades()">
+            <option value="LBS" selected>LIBRAS (LBS)</option>
+            <option value="KG">KILOGRAMOS (KG)</option>
+        </select>
+    </div>
+
+    <div class="section-title">1. Cálculo de Carga Ofertable (PLD / Payload)</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label for="dow">Dry Operating Weight - DOW (<span class="unit-label">LBS</span>):</label>
+            <input type="number" id="dow" value="78000" step="100" min="0">
+        </div>
+        <div class="form-group">
+            <label for="block_fuel">Combustible Planificado / FOB (<span class="unit-label">LBS</span>):</label>
+            <input type="number" id="block_fuel" value="22000" step="100" min="0">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label for="mlw_limit">Max Structural Landing Weight - MLW (<span class="unit-label">LBS</span>):</label>
+            <input type="number" id="mlw_limit" value="128000" step="100" readonly style="color: #aaa; background-color: rgba(15,15,15,0.9);">
+        </div>
+        <div class="form-group">
+            <label for="trip_fuel">Combustible de Vuelo / Trip Fuel (<span class="unit-label">LBS</span>):</label>
+            <input type="number" id="trip_fuel" value="12000" step="100" min="0">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group" style="grid-column: span 2;">
+            <label for="chart_weight_select">Peso de Aterrizaje para Tabla de Performance (WEIGHT x 1000 <span class="unit-label">LBS</span>):</label>
+            <select id="chart_weight_select" onchange="calcular()">
+                <option value="80000">80,000 LBS (36,287 KG)</option>
+                <option value="90000">90,000 LBS (40,823 KG)</option>
+                <option value="100000">100,000 LBS (45,359 KG)</option>
+                <option value="110000">110,000 LBS (49,895 KG)</option>
+                <option value="118000" selected>118,000 LBS (53,524 KG) - Ejemplo Gráfica</option>
+                <option value="120000">120,000 LBS (54,431 KG)</option>
+                <option value="130000">130,000 LBS (58,967 KG)</option>
+                <option value="140000">140,000 LBS (63,503 KG)</option>
+                <option value="150000">150,000 LBS (68,039 KG)</option>
+                <option value="160000">160,000 LBS (72,575 KG)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="section-title">2. Parámetros de Pista y Condición de Vuelo</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label for="altitude">Altitud de Presión (FT):</label>
+            <select id="altitude" onchange="calcular()">
+                <option value="0" selected>Sea Level (0 FT)</option>
+                <option value="2000">2,000 FT</option>
+                <option value="4000">4,000 FT</option>
+                <option value="6000">6,000 FT</option>
+                <option value="8000">8,000 FT</option>
+                <option value="8500">8,500 FT</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="wind">Viento (KTS):</label>
+            <select id="wind" onchange="calcular()">
+                <option value="50">50 KTS Headwind</option>
+                <option value="40">40 KTS Headwind</option>
+                <option value="30">30 KTS Headwind</option>
+                <option value="20">20 KTS Headwind</option>
+                <option value="10">10 KTS Headwind</option>
+                <option value="0" selected>0 KTS (Calm)</option>
+                <option value="-5">5 KTS Tailwind</option>
+                <option value="-10">10 KTS Tailwind</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="antiskid">Estado del Sistema Anti-Skid:</label>
+            <select id="antiskid" onchange="calcular()">
+                <option value="OPERATIVE" selected>OPERATIVO (Normal)</option>
+                <option value="INOP">INOPERATIVO (Gráfica FCOM Page 4-20-10)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="runway_lda">Longitud de Pista Disponible - LDA (FT):</label>
+            <input type="number" id="runway_lda" value="7000" step="100" min="2000" oninput="calcular()">
+        </div>
+    </div>
+    
+    <button onclick="calcular()">Procesar Cálculo, Carga Útil y Evaluar Despacho</button>
+
+    <div class="section-title">Resumen de Cargas (Weights & PLD)</div>
+    <table>
+        <thead>
+            <tr>
+                <th>DOW</th>
+                <th>Rem Fuel (Landing)</th>
+                <th>Est. Landing Weight</th>
+                <th>PLD Máx. Estructural</th>
+                <th>PLD Máx. Permitido (Perf)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td id="res-dow" class="highlight">-</td>
+                <td id="res-fob">-</td>
+                <td id="res-est-lw" class="highlight">-</td>
+                <td id="res-pld-struct">-</td>
+                <td id="res-pld-perf" class="highlight">-</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="section-title">Performance de Aterrizaje</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Condición Pista</th>
+                <th>Dist. Requerida (Factored)</th>
+                <th>% Pista Utilizada</th>
+                <th>Estado Operación</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>DRY (Seca - 60%)</strong></td>
+                <td id="res-dry-req" class="highlight">-</td>
+                <td id="res-dry-pct">-</td>
+                <td id="res-dry-status">-</td>
+            </tr>
+            <tr>
+                <td><strong>WET (Mojada - 75%)</strong></td>
+                <td id="res-wet-req" class="highlight">-</td>
+                <td id="res-wet-pct">-</td>
+                <td id="res-wet-status">-</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p style="font-size: 0.85em; color: #ccc; text-align: center; margin-top: 12px;">
+        * Landing Speed (V<sub>ref</sub>): <strong id="res-vref" style="color: #d4af37;">-</strong> KTS IAS | Distancia Chart (Unfactored): <strong id="res-chart-dist" style="color: #d4af37;">-</strong> FT
+    </p>
+
+    <div id="status-box" class="status-box status-ok">
+        Estatus Operacional: Evaluando...
+    </div>
+
+    <div class="footer">
+        Desarrollado para Control de Despacho y Operaciones de Vuelo | <strong>JD - Planificación Segura</strong>
+    </div>
+</div>
+
+<script>
+let currentUnit = "LBS";
+const KG_TO_LBS = 2.20462;
+
+function actualizarOpcionesDesplegable(unit) {
+    let select = document.getElementById('chart_weight_select');
+    let weightsLbs = [80000, 90000, 100000, 110000, 118000, 120000, 130000, 140000, 150000, 160000];
+    let selectedValue = select.value;
+
+    select.innerHTML = '';
+    weightsLbs.forEach(w => {
+        let opt = document.createElement('option');
+        opt.value = w;
+        if (unit === "KG") {
+            let kgVal = Math.round(w / KG_TO_LBS);
+            opt.innerText = ${kgVal.toLocaleString()} KG (${(w/1000)}k LBS);
+        } else {
+            opt.innerText = ${w.toLocaleString()} LBS;
+        }
+        if (w.toString() === selectedValue) opt.selected = true;
+        select.appendChild(opt);
+    });
+}
+
+function convertirUnidades() {
+    let newUnit = document.getElementById('weight_unit').value;
+    if (newUnit === currentUnit) return;
+
+    let dowInput = document.getElementById('dow');
+    let blockFuelInput = document.getElementById('block_fuel');
+    let tripFuelInput = document.getElementById('trip_fuel');
+    let mlwInput = document.getElementById('mlw_limit');
+
+    let factor = (newUnit === "KG") ? (1 / KG_TO_LBS) : KG_TO_LBS;
+
+    dowInput.value = Math.round(parseFloat(dowInput.value) * factor);
+    blockFuelInput.value = Math.round(parseFloat(blockFuelInput.value) * factor);
+    tripFuelInput.value = Math.round(parseFloat(tripFuelInput.value) * factor);
+    mlwInput.value = Math.round(parseFloat(mlwInput.value) * factor);
+
+    currentUnit = newUnit;
+
+    document.querySelectorAll('.unit-label').forEach(el => el.innerText = currentUnit);
+    actualizarOpcionesDesplegable(currentUnit);
+
+    calcular();
+}
+
+function calcular() {
+    let unit = document.getElementById('weight_unit').value;
+
+    let dowInput = parseFloat(document.getElementById('dow').value) || 0;
+    let blockFuelInput = parseFloat(document.getElementById('block_fuel').value) || 0;
+    let tripFuelInput = parseFloat(document.getElementById('trip_fuel').value) || 0;
+    let mlwInput = parseFloat(document.getElementById('mlw_limit').value) || (unit === "KG" ? 58059 : 128000);
+
+    let alt = parseFloat(document.getElementById('altitude').value);
+    let wind = parseFloat(document.getElementById('wind').value);
+    let antiSkid = document.getElementById('antiskid').value;
+    let lda = parseFloat(document.getElementById('runway_lda').value);
+
+    // Peso seleccionado en la lista desplegable (en LBS)
+    let selectedChartWeightLbs = parseFloat(document.getElementById('chart_weight_select').value);
+
+    // 1. Pesos en la unidad seleccionada para despliegue
+    let remFuelAtLanding = Math.max(0, blockFuelInput - tripFuelInput);
+    let estLandingWeight = dowInput + remFuelAtLanding; 
+    let pldStructural = mlwInput - estLandingWeight;
+
+    // 2. Cálculo de Performance según gráfica
+    let weight_k = selectedChartWeightLbs / 1000.0;
+
+    // Vref calculada
+    let vref = 100.0 + (weight_k - 80.0) * (58.0 / 70.0);
+    
+    let dist_chart_base = 0;
+
+    if (antiSkid === "OPERATIVE") {
+        // Gráfica MDC-J8480 (Anti-Skid Operativo)
+        dist_chart_base = (3.55 + (weight_k - 80.0) * (2.50 / 70.0)) * 1000.0;
+    } else {
+        // Gráfica 4-20-10 (Anti-Skid Inoperativo)
+        dist_chart_base = (4.90 + (weight_k - 80.0) * (2.70 / 70.0)) * 1000.0;
+    }
+
+    let f_alt = 1.0 + (alt / 8500.0) * 0.28;
+    let f_wind = wind >= 0 ? (1.0 - (wind / 10.0) * 0.08) : (1.0 + (Math.abs(wind) / 10.0) * 0.15);
+    let chart_corrected = dist_chart_base * f_alt * f_wind;
+
+    // Factores de margen operacional (60% para Dry, 75% para Wet)
+    let dry_required = chart_corrected / 0.60;
+    let wet_required = (chart_corrected / 0.60) * 1.15;
+
+    let dry_pct = (dry_required / lda) * 100.0;
+    let wet_pct = (wet_required / lda) * 100.0;
+
+    let pldPerf = pldStructural;
+    if (dry_required > lda || wet_required > lda) {
+        let maxAllowedLWLbs = selectedChartWeightLbs * (lda / Math.max(dry_required, wet_required));
+        let maxAllowedLW = (unit === "KG") ? maxAllowedLWLbs / KG_TO_LBS : maxAllowedLWLbs;
+        pldPerf = Math.max(0, maxAllowedLW - estLandingWeight);
+    }
+
+    // Actualización Tablas de Pesos
+    document.getElementById('res-dow').innerText = Math.round(dowInput).toLocaleString() + " " + unit;
+    document.getElementById('res-fob').innerText = Math.round(remFuelAtLanding).toLocaleString() + " " + unit;
+    document.getElementById('res-est-lw').innerText = Math.round(estLandingWeight).toLocaleString() + " " + unit;
+    document.getElementById('res-pld-struct').innerText = Math.round(pldStructural).toLocaleString() + " " + unit;
+    document.getElementById('res-pld-perf').innerText = Math.round(pldPerf).toLocaleString() + " " + unit;
+
+    // Actualización Campos Generales
+    document.getElementById('res-vref').innerText = vref.toFixed(1);
+    document.getElementById('res-chart-dist').innerText = Math.round(chart_corrected).toLocaleString();
+
+    // Actualización Fila DRY
+    document.getElementById('res-dry-req').innerText = Math.round(dry_required).toLocaleString() + " FT";
+    document.getElementById('res-dry-pct').innerText = dry_pct.toFixed(1) + " %";
+    let dry_status_el = document.getElementById('res-dry-status');
+    if (dry_required <= lda) {
+        dry_status_el.innerHTML = '<span class="status-ok-text">ÓPTIMO</span>';
+    } else {
+        dry_status_el.innerHTML = '<span class="status-warn-text">NO AUTORIZADO</span>';
+    }
+
+    // Actualización Fila WET
+    document.getElementById('res-wet-req').innerText = Math.round(wet_required).toLocaleString() + " FT";
+    document.getElementById('res-wet-pct').innerText = wet_pct.toFixed(1) + " %";
+    let wet_status_el = document.getElementById('res-wet-status');
+    if (wet_required <= lda) {
+        wet_status_el.innerHTML = '<span class="status-ok-text">ÓPTIMO</span>';
+    } else {
+        wet_status_el.innerHTML = '<span class="status-warn-text">NO AUTORIZADO</span>';
+    }
+
+    // Recuadro de Resumen General
+    let statusBox = document.getElementById('status-box');
+    if (wet_required <= lda) {
+        statusBox.className = "status-box status-ok";
+        statusBox.innerHTML = Pista ÓPTIMA | PLD Máximo Autorizado: ${Math.round(pldPerf).toLocaleString()} ${unit}<br><small>Anti-Skid ${antiSkid} | LDA: ${lda.toLocaleString()} FT</small>;
+    } else if (dry_required <= lda) {
+        statusBox.className = "status-box status-warning";
+        statusBox.innerHTML = Pista ÓPTIMA ÚNICAMENTE para Pista Seca | PLD Limitado<br><small>No autorizada para pista mojada por requerimiento de longitud</small>;
+    } else {
+        statusBox.className = "status-box status-warning";
+        statusBox.innerHTML = Pista NO ÓPTIMA / NO AUTORIZADA PARA DESPACHO<br><small>Requiere reducción de peso o pista alternativa</small>;
+    }
+}
+
+window.onload = function() {
+    actualizarOpcionesDesplegable("LBS");
+    calcular();
+};
+</script>
+
+</body>
+</html>
